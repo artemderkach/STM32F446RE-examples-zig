@@ -7,3 +7,14 @@ SECTIONS {
 		KEEP(*(.text))
 	} > FLASH
 }
+
+/* This sections are not required for current program
+   removed for cleaner output of 'objdump' */
+SECTIONS {
+	/DISCARD/ : {
+		*(.comment)
+		*(.symtab)
+		*(.strtab)
+		*(.ARM.attributes)
+	}
+}

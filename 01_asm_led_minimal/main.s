@@ -8,7 +8,7 @@
 	.word    0                  // Top of the stack. Value is irrelevant for this example
 	.word    _start             // Reference to main label. +1 for thumb mode
 
-.thumb_func						// Allows caller to have +1 in address
+.thumb_func					// Allows caller to have +1 in address
 _start:
 	// Enable GPIOA Peripheral Clock (bit 1 in AHB1ENR register)
 	ldr r6, = 0x40023830        // Load peripheral clock reg address to r6
