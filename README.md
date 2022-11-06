@@ -13,6 +13,7 @@ Each exercise will contain information i discovered during it's implementation a
 ## 01_asm_led_minimal
 A good place to start is to implement the minimal possible program.
 It will use assembly, to begin with the simplest language. Plus assembly still will be used for startup files in future.
+At this point i will also try to remove any unused sections, flags etc. They will be added in future examples if needed.
 
 Files used:
 - `main.s` - contains both vector table and code to blink LED
@@ -21,7 +22,7 @@ Files used:
 Before using build system, program will be built with command line call  
 `zig build-exe main.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -TSTM32F446RETx.ld --name main.elf --verbose-link --verbose-cc --strip`.  
 `-target` and `-mcpu` to define where code will be flashed  
-`--verbose-link` and `--verbose-cc` to view the compiler  and linker flags:
+`--verbose-link` and `--verbose-cc` to view the compiler  and linker flags (`--verbose-cc` will not produce any output if compilation is cached) :
 ```
 zig clang -fno-caret-diagnostics -target thumb-unknown-unknown-unknown -mcpu=cortex-m4 -ffreestanding -c -o main.o main.s
 ld.lld -error-limit=0 --lto-O3 -O3 -z stack-size=16777216 -T STM32F446RETx.ld --gc-sections -m armelf_linux_eabi -Bstatic -o main.elf main.o libc.a libcompiler_rt.a --as-needed --allow-shlib-undefined
@@ -72,7 +73,10 @@ Important thing is to add `export` to main function as it will allow to expose i
 
 ### Problems during implementation
 1. `.ARM.exidx` missing region  
-When compiling, error from linker with message `no memory region specified for section '.ARM.exidx'` occurs. 
+When compiling, error from linker with message `no memory region specified for section '.ARM.exidx'` occurs.  
+This section is needed for 'unwinding the stack', procedure for handling exceptions. Given that zig have no exceptions,  
+`exidx` sections is useless. Nevertheless it's required for linker script, for some reason.  
+To work around this issue, add `-fno-unwind-tables` to issue.
 
 ### Problems during implementation
 2. Code from startup file not appearing in disassembly  

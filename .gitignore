@@ -1,5 +1,5 @@
-*/zig-cache
-*/zig-out
+*zig-cache
+*zig-out
 *.elf
 *.o
-objdump // disassembly output
+objdump
