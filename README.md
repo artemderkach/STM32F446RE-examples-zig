@@ -78,7 +78,6 @@ This section is needed for 'unwinding the stack', procedure for handling excepti
 `exidx` sections is useless. Nevertheless it's required for linker script, for some reason.  
 To work around this issue, add `-fno-unwind-tables` to issue.
 
-### Problems during implementation
 2. Code from startup file not appearing in disassembly  
 Either linker or compiler removing startup file part from object file. Changing section name from `.text` to `.isr_vector` helped the issue.  
 Probably startup file require different section name than the main one.  
