@@ -37,7 +37,7 @@ ld.lld -error-limit=0 --lto-O3 -O3 -z stack-size=16777216 -T STM32F446RETx.ld --
 When disassembling the `elf` file by `llvm-objdump -D main.elf` `.text` section were missing from disassembly.
 Due to optimization, compiler removed code from `main.s` file, to solve this problem `KEEP()` keyword need to be added
 to prevent from optimizing this part, so we have `KEEP(*(.text))` in linker script. This caught me off guard because 
-`gcc` wasn't making such optimization, probably due to different different flags provided to linker.
+`gcc` wasn't making such optimization, probably due to different flags provided to linker.
 2. `+1` address offset  
 Cortex M got this weird thing when it uses `thumb` instruction set, the reference to label should be one bit higher than
 the actual address. Simple way to do it is to add actual `+1` to assembly code e.g. `.word _start +1`.
@@ -46,18 +46,18 @@ To take more systematic approach `.thumb_func` label should be added to called f
 .thumb_func
 _start:
 ``` 
-3. `_start` not exposed
+3. `_start` not exposed  
 `ld.lld: warning: cannot find entry symbol _start; not setting start address` is occurring when compiling the code.  
 `_start` function should be exposed by adding `.global` in assembly file.  
 `.global _start`  
 
 ### Lessons learned
-1. binary size
-While trying to solve `#1` problem i digged into `.elf` to solve the issue. When investigating the question raised:
+1. binary size  
+While trying to solve `#1` problem i digged into `.elf` to solve the issue. When investigating, the question raised:
 'why are elf files so huge in comparison to actual work been done?'. File contains `.ARM.attributes`, `.comment`,
 `.symtab`, `.shstrtab`, `.strtab` sections. Apparently only a part of sections are being flashed into device 
 (still need to figure what rules are used for it).
-2. reset sequence
+2. reset sequence  
 One last thing to know when starting is a reset sequence. This will explain the need for `.word _start` when writing code.
 Best described by paragraph from cortex-m3/4 book:
 > After reset and before the processor starts executing the program, the Cortex-M
@@ -74,9 +74,9 @@ Important thing is to add `export` to main function as it will allow to expose i
 
 ### Problems during implementation
 1. `.ARM.exidx` missing region  
-When compiling, error from linker with message `no memory region specified for section '.ARM.exidx'` occurs.  
-This section is needed for 'unwinding the stack', procedure for handling exceptions. Given that zig have no exceptions,  
-`exidx` sections is useless. Nevertheless it's required for linker script, for some reason.  
+When compiling, error from linker with message `no memory region specified for section '.ARM.exidx'` occurs.
+This section is needed for 'unwinding the stack', procedure for handling exceptions. Given that zig have no exceptions,
+`exidx` sections is useless. Nevertheless it's required for linker script, for some reason.
 To work around this issue, add `-fno-unwind-tables` to issue.
 
 2. Code from startup file not appearing in disassembly  
