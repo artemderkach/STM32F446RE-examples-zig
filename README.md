@@ -27,17 +27,18 @@ Before using build system, program will be built with command line call
 zig clang -fno-caret-diagnostics -target thumb-unknown-unknown-unknown -mcpu=cortex-m4 -ffreestanding -c -o main.o main.s
 ld.lld -error-limit=0 --lto-O3 -O3 -z stack-size=16777216 -T STM32F446RETx.ld --gc-sections -m armelf_linux_eabi -Bstatic -o main.elf main.o libc.a --as-needed --allow-shlib-undefined
 ```
-`--strip` to omit debug info in elf file
+`--strip` to omit debug info in elf file  
+`-fno-compiler-rt` to remove lazy loaded `compiler-rt.a`  
 
 `openocd -f board/st_nucleo_f4.cfg -c "program build/main.elf verify reset exit"` to flash on device
 
 ### Problems during implementation
-1. `_start` section disappeared
+1. `_start` section disappeared  
 When disassembling the `elf` file by `llvm-objdump -D main.elf` `.text` section were missing from disassembly.
 Due to optimization, compiler removed code from `main.s` file, to solve this problem `KEEP()` keyword need to be added
 to prevent from optimizing this part, so we have `KEEP(*(.text))` in linker script. This caught me off guard because 
 `gcc` wasn't making such optimization, probably due to different different flags provided to linker.
-2. `+1` address offset
+2. `+1` address offset  
 Cortex M got this weird thing when it uses `thumb` instruction set, the reference to label should be one bit higher than
 the actual address. Simple way to do it is to add actual `+1` to assembly code e.g. `.word _start +1`.
 To take more systematic approach `.thumb_func` label should be added to called function instead of `+1`:
