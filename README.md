@@ -72,6 +72,15 @@ sets up the MSP and the Program Counter (PC) with these values.
 Now to use zig i'll add `main.zig` file to put there logic for turning on led.  
 Important thing is to add `export` to main function as it will allow to expose it to compiler, same logic as with `.global` in assembly.  
 
+Files used:
+- `main.s` - contains both vector table 
+- `main.zig` code to blink LED
+- `STM32F446RETx.ld` - linker script file  
+
+commands to build and flash program:
+- `zig build-exe main.zig startup_stm32f446xx.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -TSTM32F446RETx.ld --name main.elf --verbose-link --verbose-cc --strip -fno-compiler-rt`  
+- `openocd -f board/st_nucleo_f4.cfg -c "program main.elf verify reset exit"`  
+
 ### Problems during implementation
 1. `.ARM.exidx` missing region  
 When compiling, error from linker with message `no memory region specified for section '.ARM.exidx'` occurs.
@@ -82,3 +91,9 @@ To work around this issue, add `-fno-unwind-tables` to issue.
 2. Code from startup file not appearing in disassembly  
 Either linker or compiler removing startup file part from object file. Changing section name from `.text` to `.isr_vector` helped the issue.  
 Probably startup file require different section name than the main one.  
+
+### Lessons Learned
+1. `.c` alternative  
+Ways to access memory in both languages:  
+`(*(volatile unsigned int *) (0x12345678)) |= 0x1;` - `.c` version  
+`@intToPtr(*volatile u32, 0x12345678)).* |= 0x1;` - `.zig` version
