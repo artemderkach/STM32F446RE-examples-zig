@@ -15,6 +15,5 @@ SECTIONS {
 		*(.comment)
 		*(.symtab)
 		*(.strtab)
-		*(.ARM.attributes)
 	}
 }

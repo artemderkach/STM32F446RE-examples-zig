@@ -1,6 +1,6 @@
 // buid and flash program:
-// zig build-exe main.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -TSTM32F446RETx.ld --name main.elf --verbose-link --verbose-cc --strip -fno-compiler-rt
-// openocd -f board/st_nucleo_f4.cfg -c "program build/main.elf verify reset exit"
+// zig build-exe main.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -TSTM32F446RETx.ld --name main.elf -fstrip -fno-compiler-rt
+// openocd -f board/st_nucleo_f4.cfg -c "program main.elf verify reset exit"
 
 
 .thumb // select thumb instruction set
