@@ -1,5 +1,5 @@
 // buid and flash program:
-// zig build-exe main.zig startup_stm32f446xx.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -TSTM32F446RETx.ld --name main.elf --verbose-link --verbose-cc --strip -fno-compiler-rt
+// zig build-exe main.zig startup_stm32f446xx.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -TSTM32F446RETx.ld --name main.elf -fstrip -fno-compiler-rt
 // openocd -f board/st_nucleo_f4.cfg -c "program main.elf verify reset exit"
 
 pub export fn _start() void {
