@@ -8,7 +8,7 @@ Each exercise will contain information i discovered during it's implementation a
 - [01_asm_led_minimal](#01_asm_led_minimal)
 - [11_led_minimal](#11_led_minimal)
 
-
+<br>
 
 ## 01_asm_led_minimal
 A good place to start is to implement the minimal possible program.
@@ -20,14 +20,15 @@ Files used:
 - `STM32F446RETx.ld` - linker script file  
 
 Before using build system, program will be built with command line call  
-`zig build-exe main.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -TSTM32F446RETx.ld --name main.elf --verbose-link --verbose-cc --strip -fno-compiler-rt`.  
+`zig build-exe main.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -TSTM32F446RETx.ld --name main.elf --verbose-link --verbose-cc -fstrip -fno-compiler-rt`.  
 `-target` and `-mcpu` to define where code will be flashed  
 `--verbose-link` and `--verbose-cc` to view the compiler  and linker flags (`--verbose-cc` will not produce any output if compilation is cached) :
 ```
 zig clang -fno-caret-diagnostics -target thumb-unknown-unknown-unknown -mcpu=cortex-m4 -ffreestanding -c -o main.o main.s
 ld.lld -error-limit=0 --lto-O3 -O3 -z stack-size=16777216 -T STM32F446RETx.ld --gc-sections -m armelf_linux_eabi -Bstatic -o main.elf main.o libc.a --as-needed --allow-shlib-undefined
 ```
-`--strip` to omit debug info in elf file  
+both of verbose params will be omitted in future examples  
+`-fstrip` to omit debug info in elf file  
 `-fno-compiler-rt` to remove lazy loaded `compiler-rt.a`  
 
 `openocd -f board/st_nucleo_f4.cfg -c "program build/main.elf verify reset exit"` to flash on device
@@ -54,7 +55,7 @@ _start:
 ### Lessons learned
 1. binary size  
 While trying to solve `#1` problem i digged into `.elf` to solve the issue. When investigating, the question raised:
-'why are elf files so huge in comparison to actual work been done?'. File contains `.ARM.attributes`, `.comment`,
+'why are elf files so huge in comparison to actual work been done?'. File contains `.comment`,
 `.symtab`, `.shstrtab`, `.strtab` sections. Apparently only a part of sections are being flashed into device 
 (still need to figure what rules are used for it).
 2. reset sequence  
@@ -65,8 +66,11 @@ processors read the first two words from the memory. The beginning of
 the memory space contains the vector table, and the first two words in the vector table are the
 initial value for the Main Stack Pointer (MSP), and the reset vector, which
 is the starting address of the reset handler. After these two words are read by the processor, the processor then
-sets up the MSP and the Program Counter (PC) with these values.
+sets up the MSP and the Program Counter (PC) with these values.  
+3. `.ARM.attributes`  
+`.ARM.attributes` section holding specific instruction arm instructions needed to view them in objdump.  
 
+<br>
 
 ## 11_led_minimal
 Now to use zig i'll add `main.zig` file to put there logic for turning on led.  
@@ -80,6 +84,7 @@ Files used:
 commands to build and flash program:
 - `zig build-exe main.zig startup_stm32f446xx.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -TSTM32F446RETx.ld --name main.elf --verbose-link --verbose-cc --strip -fno-compiler-rt`  
 - `openocd -f board/st_nucleo_f4.cfg -c "program main.elf verify reset exit"`  
+
 
 ### Problems during implementation
 1. `.ARM.exidx` missing region  
@@ -97,3 +102,21 @@ Probably startup file require different section name than the main one.
 Ways to access memory in both languages:  
 `(*(volatile unsigned int *) (0x12345678)) |= 0x1;` - `.c` version  
 `@intToPtr(*volatile u32, 0x12345678)).* |= 0x1;` - `.zig` version
+
+<br>
+
+## 21_led_struct
+Adding complexity by presenting Memory Mapped structures. 
+In previous examples i was using pure values when accessing memory regions.
+Default approach is to map memory into structure, this way everything is organized and in one place. 
+
+Files used:
+- `main.s` - contains both vector table 
+- `main.zig` code to blink LED
+- `registers.zig` - file with memory mapped structures
+- `STM32F446RETx.ld` - linker script file 
+
+### Problems during implementation
+1. packed struct  
+`zig 0.10` still have some issues with packed structs, specifically when nesting them together.
+For this reason registers will have flat structure for now.
