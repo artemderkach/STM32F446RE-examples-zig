@@ -17,15 +17,15 @@ At this point i will also try to remove any unused sections, flags etc. They wil
 
 Files used:
 - `main.s` - contains both vector table and code to blink LED
-- `STM32F446RETx.ld` - linker script file  
+- `linker.ld` - linker script file  
 
 Before using build system, program will be built with command line call  
-`zig build-exe main.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -TSTM32F446RETx.ld --name main.elf --verbose-link --verbose-cc -fstrip -fno-compiler-rt`.  
+`zig build-exe main.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -Tlinker.ld --name main.elf --verbose-link --verbose-cc -fstrip -fno-compiler-rt`.  
 `-target` and `-mcpu` to define where code will be flashed  
 `--verbose-link` and `--verbose-cc` to view the compiler  and linker flags (`--verbose-cc` will not produce any output if compilation is cached) :
 ```
 zig clang -fno-caret-diagnostics -target thumb-unknown-unknown-unknown -mcpu=cortex-m4 -ffreestanding -c -o main.o main.s
-ld.lld -error-limit=0 --lto-O3 -O3 -z stack-size=16777216 -T STM32F446RETx.ld --gc-sections -m armelf_linux_eabi -Bstatic -o main.elf main.o libc.a --as-needed --allow-shlib-undefined
+ld.lld -error-limit=0 --lto-O3 -O3 -z stack-size=16777216 -T linker.ld --gc-sections -m armelf_linux_eabi -Bstatic -o main.elf main.o libc.a --as-needed --allow-shlib-undefined
 ```
 both of verbose params will be omitted in future examples  
 `-fstrip` to omit debug info in elf file  
@@ -79,10 +79,10 @@ Important thing is to add `export` to main function as it will allow to expose i
 Files used:
 - `main.s` - contains both vector table 
 - `main.zig` code to blink LED
-- `STM32F446RETx.ld` - linker script file  
+- `linker.ld` - linker script file  
 
 commands to build and flash program:
-- `zig build-exe main.zig startup_stm32f446xx.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -TSTM32F446RETx.ld --name main.elf --verbose-link --verbose-cc --strip -fno-compiler-rt`  
+- `zig build-exe main.zig startup.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -Tlinker.ld --name main.elf --verbose-link --verbose-cc --strip -fno-compiler-rt`  
 - `openocd -f board/st_nucleo_f4.cfg -c "program main.elf verify reset exit"`  
 
 
@@ -114,7 +114,7 @@ Files used:
 - `main.s` - contains both vector table 
 - `main.zig` code to blink LED
 - `registers.zig` - file with memory mapped structures
-- `STM32F446RETx.ld` - linker script file 
+- `linker.ld` - linker script file 
 
 ### Problems during implementation
 1. packed struct  
