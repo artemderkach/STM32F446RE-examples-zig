@@ -6,6 +6,9 @@ Each exercise will contain information i discovered during it's implementation a
 
 # STM32F446RE
 - [01_asm_led_minimal](#01_asm_led_minimal)
+- [02_asm_blinky](#02_asm_blinky)
+- [03_asm_led_button](#03_asm_led_button)
+- [04_asm_blinky_button](#04_asm_blinky_button)
 - [11_led_minimal](#11_led_minimal)
 
 <br>
@@ -69,6 +72,37 @@ is the starting address of the reset handler. After these two words are read by 
 sets up the MSP and the Program Counter (PC) with these values.  
 3. `.ARM.attributes`  
 `.ARM.attributes` section holding specific instruction arm instructions needed to view them in objdump.  
+
+<br>
+
+## 02_asm_blinky
+blinking onboard LED.  
+Period is defined by delay `0xFFFFF` which is about 1 mil,
+loop is taking few cycles.
+With 16 MHz default clock speed, it would give us few blinks in a second.
+
+Files:
+- `main.s` - program code
+- `linker.ld` - linker
+
+### Lessons Learned
+1. Compare instructions  
+Compare instructions such as `cmp` updates `cpsr` register,
+which is giving branch instructions such as `bne` to check
+a compare results and make a decision.
+
+<br>
+
+## 03_asm_led_button
+Turn on LED if onboard button is pushed.
+
+Files:
+- `main.s` - program code
+- `linker.ld` - linker
+
+### Lessons Learned
+1. Button State  
+If button is not pushed, IDR register outputs 1, otherwise 0.
 
 <br>
 
