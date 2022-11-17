@@ -81,10 +81,6 @@ Period is defined by delay `0xFFFFF` which is about 1 mil,
 loop is taking few cycles.
 With 16 MHz default clock speed, it would give us few blinks in a second.
 
-Files:
-- `main.s` - program code
-- `linker.ld` - linker
-
 ### Lessons Learned
 1. Compare instructions  
 Compare instructions such as `cmp` updates `cpsr` register,
@@ -96,13 +92,14 @@ a compare results and make a decision.
 ## 03_asm_led_button
 Turn on LED if onboard button is pushed.
 
-Files:
-- `main.s` - program code
-- `linker.ld` - linker
-
 ### Lessons Learned
 1. Button State  
 If button is not pushed, IDR register outputs 1, otherwise 0.
+
+<br>
+
+## 04_asm_blinky_button
+LED starts blinking when onboard button is pushed.
 
 <br>
 
