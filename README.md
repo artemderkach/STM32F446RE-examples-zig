@@ -6,10 +6,12 @@ Each exercise will contain information i discovered during it's implementation a
 
 # STM32F446RE
 - [01_asm_led_minimal](#01_asm_led_minimal)
-- [02_asm_blinky](#02_asm_blinky)
+- [02_asm_blink](#02_asm_blink)
 - [03_asm_led_button](#03_asm_led_button)
-- [04_asm_blinky_button](#04_asm_blinky_button)
+- [04_asm_blink_button](#04_asm_blink_button)
 - [11_led_minimal](#11_led_minimal)
+- [21_led_registers](#21_led_registers)
+- [22_led_library](#22_led_library)
 
 <br>
 
@@ -75,7 +77,7 @@ sets up the MSP and the Program Counter (PC) with these values.
 
 <br>
 
-## 02_asm_blinky
+## 02_asm_blink
 blinking onboard LED.  
 Period is defined by delay `0xFFFFF` which is about 1 mil,
 loop is taking few cycles.
@@ -98,7 +100,7 @@ If button is not pushed, IDR register outputs 1, otherwise 0.
 
 <br>
 
-## 04_asm_blinky_button
+## 04_asm_blink_button
 LED starts blinking when onboard button is pushed.
 
 <br>
@@ -136,7 +138,7 @@ Ways to access memory in both languages:
 
 <br>
 
-## 21_led_struct
+## 21_led_registers
 Adding complexity by presenting Memory Mapped structures. 
 In previous examples i was using pure values when accessing memory regions.
 Default approach is to map memory into structure, this way everything is organized and in one place. 
@@ -147,7 +149,19 @@ Files used:
 - `registers.zig` - file with memory mapped structures
 - `linker.ld` - linker script file 
 
+## 22_led_library
+Move every hex literal and bit shift from right side of `=` to `registers.zig`
+to have cleaner code in main:
+`regs.RCC.AHB1ENR |= 0x1;` --> `regs.RCC.AHB1ENR |= regs.RCC_AHB1ENR_GPIOAEN;`
+
 ### Problems during implementation
 1. packed struct  
 `zig 0.10` still have some issues with packed structs, specifically when nesting them together.
 For this reason registers will have flat structure for now.
+
+## 41_tim_blink
+Using general purpose timers, instead of loop, to blink onboard LED.
+Timer is set by prescaler and auto reload registers.  
+- `prescaler` - value which is used to divide clock speed (16MHz/PSC)
+- `auto reload register (ARR)` - start value that is used to count down
+After timer is counted from 0 to ARR, it requires reset by updating SR register (first bit).
