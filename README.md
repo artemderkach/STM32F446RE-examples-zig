@@ -190,6 +190,7 @@ while (count > 0) : (count -= 1) {
 ## 31_usart
 Sending char (u8) through USART.  
 Data is received in terminal via `screen /dev/ttyACM0 115200`, 115200 is baud rate.
+This example is limited to sending only one char `u8`.
 
 Files used:
 - `main.s` - contains both vector table 
@@ -198,12 +199,20 @@ Files used:
 - `linker.ld` - linker script file 
 
 ## 32_usart_writer
-Send u32 data through USART.
+Point of this example is to show how to send any type of data through USART.
+To achieve this goal, `writer` from standard library can be used (`std.io.Writer`).
+It will allow to use `print` method to convert any types to string and send it through.
 Also transform raw values to constants from registers file.
 
 ### Problems during implementation
+1. Sending String  
+`writer` function is required to return bytes written.
+It is very important to send the actual number of bytes, otherwise it will mess up the sending.
+
+### Lessons Learned
 1. USART type
-Data is sent using []u8, transformation from u32 to []u8 is required.
+Data is sent using `[]u8`, transformation from `u32` to `[]u8` is required.
+It is done via `print` function.
 
 <br>
 
