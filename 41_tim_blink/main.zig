@@ -31,10 +31,10 @@ pub export fn _start() void {
 
     while (true) {
         // check if update interrupt flag is 1
-        while((regs.TIM2.SR & regs.TIM_CR1_UIF) != regs.TIM_CR1_UIF) {}
+        while((regs.TIM2.SR & regs.TIM_SR_UIF) != regs.TIM_SR_UIF) {}
 
         // reset interrupt flag
-        regs.TIM2.SR &= ~regs.TIM_CR1_UIF;
+        regs.TIM2.SR &= ~regs.TIM_SR_UIF;
 
         // toggle LED
         regs.GPIOA.ODR ^= regs.GPIO_ODR_PORT5;
