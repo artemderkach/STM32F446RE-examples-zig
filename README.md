@@ -13,9 +13,11 @@ Each exercise will contain information i discovered during it's implementation a
 - [21_led_registers](#21_led_registers)
 - [22_led_library](#22_led_library)
 - [23_blink](#23_blink)
-- [31_usart](#22_usart)
-- [41_tim_blink](#41_tim_blink)
-- [42_tim_output](#42_tim_output)
+- [31_usart](#31_usart)
+- [31_usart_writer](#31_usart_writer)
+- [41_adc](#41_adc)
+- [51_tim_blink](#51_tim_blink)
+- [52_tim_output](#52_tim_output)
 
 <br>
 
@@ -108,7 +110,7 @@ Now to use zig i'll add `main.zig` file to put there logic for turning on led.
 Important thing is to add `export` to main function as it will allow to expose it to compiler, same logic as with `.global` in assembly.  
 
 Files used:
-- `main.s` - contains both vector table 
+- `main.s` - contains vector table 
 - `main.zig` code to blink LED
 - `linker.ld` - linker script file  
 
@@ -142,7 +144,7 @@ In previous examples i was using pure values when accessing memory regions.
 Default approach is to map memory into structure, this way everything is organized and in one place. 
 
 Files used:
-- `main.s` - contains both vector table 
+- `main.s` - contains vector table 
 - `main.zig` code to blink LED
 - `registers.zig` - file with memory mapped structures
 - `linker.ld` - linker script file 
@@ -193,10 +195,10 @@ Data is received in terminal via `screen /dev/ttyACM0 115200`, 115200 is baud ra
 This example is limited to sending only one char `u8`.
 
 Files used:
-- `main.s` - contains both vector table 
-- `main.zig` code to blink LED
-- `registers.zig` - file with memory mapped structures
-- `linker.ld` - linker script file 
+- `main.s` 
+- `main.zig`
+- `registers.zig`
+- `linker.ld` 
 
 ## 32_usart_writer
 Point of this example is to show how to send any type of data through USART.
@@ -216,7 +218,18 @@ It is done via `print` function.
 
 <br>
 
-## 41_tim_blink
+## 41_adc
+Convert input analog signal to digital, result is sent to USART. 
+
+Files used:
+- `main.s`
+- `main.zig`
+- `registers.zig`
+- `linker.ld`
+
+<br>
+
+## 51_tim_blink
 Using general purpose timers, instead of loop, to blink onboard LED.
 Timer is set by prescaler and auto reload registers.  
 - `prescaler` - value which is used to divide clock speed (16MHz/PSC)
@@ -224,17 +237,13 @@ Timer is set by prescaler and auto reload registers.
 After timer is counted from 0 to ARR, it requires reset by updating SR register (first bit).
 
 Files used:
-- `main.s` - contains both vector table 
-- `main.zig` code to blink LED
-- `registers.zig` - file with memory mapped structures
-- `linker.ld` - linker script file 
+- `main.s`
+- `main.zig`
+- `registers.zig`
+- `linker.ld`
 
-## 42_tim_output
+## 52_tim_output
 Configure TIM to blink LED not by software, but automatically by outputting TIM signal straight to PIN5.
 PA5 need to be configured as an alternate function for TIM2.
 This can also be considered as PWM mode.
 
-<br>
-
-## 51_adc
-Convert input analog signal to digital, result is sent to USART. 
