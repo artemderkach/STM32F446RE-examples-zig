@@ -6,8 +6,8 @@ const std = @import("std");
 
 const regs = @import("registers.zig");
 
-const freq: u32 = 16000000;
-const baud: u32 = 115200;
+const freq: u32 = 16_000_000; // clock speed
+const baud: u32 = 115200;     // baud rate
 
 pub export fn _start() void {
     // Enable clock access
