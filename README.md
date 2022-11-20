@@ -12,6 +12,10 @@ Each exercise will contain information i discovered during it's implementation a
 - [11_led_minimal](#11_led_minimal)
 - [21_led_registers](#21_led_registers)
 - [22_led_library](#22_led_library)
+- [23_blink](#23_blink)
+- [31_usart](#22_usart)
+- [41_tim_blink](#41_tim_blink)
+- [42_tim_output](#42_tim_output)
 
 <br>
 
@@ -75,8 +79,6 @@ sets up the MSP and the Program Counter (PC) with these values.
 3. `.ARM.attributes`  
 `.ARM.attributes` section holding specific instruction arm instructions needed to view them in objdump.  
 
-<br>
-
 ## 02_asm_blink
 blinking onboard LED.  
 Period is defined by delay `0xFFFFF` which is about 1 mil,
@@ -89,16 +91,12 @@ Compare instructions such as `cmp` updates `cpsr` register,
 which is giving branch instructions such as `bne` to check
 a compare results and make a decision.
 
-<br>
-
 ## 03_asm_led_button
 Turn on LED if onboard button is pushed.
 
 ### Lessons Learned
 1. Button State  
 If button is not pushed, IDR register outputs 1, otherwise 0.
-
-<br>
 
 ## 04_asm_blink_button
 LED starts blinking when onboard button is pushed.
@@ -149,15 +147,65 @@ Files used:
 - `registers.zig` - file with memory mapped structures
 - `linker.ld` - linker script file 
 
+### Problems during implementation
+1. packed struct  
+`zig 0.10` still have some issues with packed structs, specifically when nesting them together.
+For this reason registers will have flat structure for now.
+
 ## 22_led_library
 Move every hex literal and bit shift from right side of `=` to `registers.zig`
 to have cleaner code in main:
 `regs.RCC.AHB1ENR |= 0x1;` --> `regs.RCC.AHB1ENR |= regs.RCC_AHB1ENR_GPIOAEN;`
 
+## 23_blink
+In this exercise i'll try to explore the concept of using variables and loops to count down the blink time.
+
 ### Problems during implementation
-1. packed struct  
-`zig 0.10` still have some issues with packed structs, specifically when nesting them together.
-For this reason registers will have flat structure for now.
+1. Optimization  
+When a simple loop `while (count > 0) : (count -= 1) {}` compiled, disassembly looks weird, and the program
+will not perform as expected. Objdump:
+```
+ 8000040: 6801         	ldr	r1, [r0]
+ 8000042: f081 0120    	eor	r1, r1, #32
+ 8000046: 6001         	str	r1, [r0]
+ 8000048: 6801         	ldr	r1, [r0]
+ 800004a: f081 0120    	eor	r1, r1, #32
+ 800004e: 6001         	str	r1, [r0]
+ 8000050: 6801         	ldr	r1, [r0]
+ 8000052: f081 0120    	eor	r1, r1, #32
+ 8000056: 6001         	str	r1, [r0]
+ 8000058: 6801         	ldr	r1, [r0]
+ 800005a: f081 0120    	eor	r1, r1, #32
+ 800005e: 6001         	str	r1, [r0]
+```
+To resolve this issue, adding line that prevents optimization is required:
+```
+while (count > 0) : (count -= 1) {
+    @import("std").mem.doNotOptimizeAway(count);
+}
+```
+
+<br>
+
+## 31_usart
+Sending char (u8) through USART.  
+Data is received in terminal via `screen /dev/ttyACM0 115200`, 115200 is baud rate.
+
+Files used:
+- `main.s` - contains both vector table 
+- `main.zig` code to blink LED
+- `registers.zig` - file with memory mapped structures
+- `linker.ld` - linker script file 
+
+## 32_usart_writer
+Send u32 data through USART.
+Also transform raw values to constants from registers file.
+
+### Problems during implementation
+1. USART type
+Data is sent using []u8, transformation from u32 to []u8 is required.
+
+<br>
 
 ## 41_tim_blink
 Using general purpose timers, instead of loop, to blink onboard LED.
@@ -165,3 +213,19 @@ Timer is set by prescaler and auto reload registers.
 - `prescaler` - value which is used to divide clock speed (16MHz/PSC)
 - `auto reload register (ARR)` - start value that is used to count down
 After timer is counted from 0 to ARR, it requires reset by updating SR register (first bit).
+
+Files used:
+- `main.s` - contains both vector table 
+- `main.zig` code to blink LED
+- `registers.zig` - file with memory mapped structures
+- `linker.ld` - linker script file 
+
+## 42_tim_output
+Configure TIM to blink LED not by software, but automatically by outputting TIM signal straight to PIN5.
+PA5 need to be configured as an alternate function for TIM2.
+This can also be considered as PWM mode.
+
+<br>
+
+## 51_adc
+Convert input analog signal to digital, result is sent to USART. 
