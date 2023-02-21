@@ -307,6 +307,13 @@ pub const GPIO_AFR_PORT15_1     = @as(u32, 1 << 29);
 pub const GPIO_AFR_PORT15_2     = @as(u32, 1 << 30);
 pub const GPIO_AFR_PORT15_3     = @as(u32, 1 << 31);
 
+pub const ADC_SR_AWD            = @as(u32, 1 << 0);
+pub const ADC_SR_EOC            = @as(u32, 1 << 1);
+pub const ADC_SR_JEOC           = @as(u32, 1 << 2);
+pub const ADC_SR_JSTRT          = @as(u32, 1 << 3);
+pub const ADC_SR_STRT           = @as(u32, 1 << 4);
+pub const ADC_SR_OVR            = @as(u32, 1 << 5);
+
 pub const ADC_SQR3_SQ1_0        = @as(u32, 1 << 0);
 pub const ADC_SQR3_SQ1_1        = @as(u32, 1 << 1);
 pub const ADC_SQR3_SQ1_2        = @as(u32, 1 << 2);
@@ -337,13 +344,6 @@ pub const ADC_SQR3_SQ6_1        = @as(u32, 1 << 26);
 pub const ADC_SQR3_SQ6_2        = @as(u32, 1 << 27);
 pub const ADC_SQR3_SQ6_3        = @as(u32, 1 << 28);
 pub const ADC_SQR3_SQ6_4        = @as(u32, 1 << 29);
-
-pub const ADC_SR_AWD            = @as(u32, 1 << 0);
-pub const ADC_SR_EOC            = @as(u32, 1 << 1);
-pub const ADC_SR_JEOC           = @as(u32, 1 << 2);
-pub const ADC_SR_JSTRT          = @as(u32, 1 << 3);
-pub const ADC_SR_STRT           = @as(u32, 1 << 4);
-pub const ADC_SR_OVR            = @as(u32, 1 << 5);
 
 pub const ADC_CR2_ADON          = @as(u32, 1 << 0);
 pub const ADC_CR2_CONT          = @as(u32, 1 << 1);
