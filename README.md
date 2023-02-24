@@ -14,8 +14,9 @@ Each exercise will contain information i discovered during it's implementation a
 - [22_led_library](#22_led_library)
 - [23_blink](#23_blink)
 - [31_usart](#31_usart)
-- [31_usart_writer](#31_usart_writer)
+- [32_usart_writer](#32_usart_writer)
 - [41_adc](#41_adc)
+- [42_adc_fraction](#42_adc_fraction)
 - [51_tim_blink](#51_tim_blink)
 - [52_tim_output](#52_tim_output)
 
@@ -229,6 +230,18 @@ Files used:
 
 <br>
 
+## 42_adc_fraction
+Convert input analog signal to digital, result is sent to USART.
+The result from register is previously adjusted to sent range [0..1000] instead of [0..4095] 
+
+Files used:
+- `main.s`
+- `main.zig`
+- `registers.zig`
+- `linker.ld`
+
+<br>
+
 ## 51_tim_blink
 Using general purpose timers, instead of loop, to blink onboard LED.
 Timer is set by prescaler and auto reload registers.  
@@ -247,3 +260,5 @@ Configure TIM to blink LED not by software, but automatically by outputting TIM 
 PA5 need to be configured as an alternate function for TIM2.
 This can also be considered as PWM mode.
 
+## 53_tim_change
+Changing the pulse with with potentiometer.
