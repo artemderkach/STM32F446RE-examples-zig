@@ -1,8 +1,9 @@
-clone of [STM32F446RE-examples](https://github.com/mind-rot/STM32F446RE-examples) but written in `zig` instead of `c`
-
 The purpose of this exercise is to explore both the world of embedded development and zig programming language.
 I choose the bottom-up approach, this way exercises will be incrementally more complicated.
 Each exercise will contain information i discovered during it's implementation and problems i faced.
+
+## Tips
+- `arm-none-eabi-objdump -D main.elf > dump` OR `llvm-objdump-15 -D main.elf > dump`
 
 # STM32F446RE
 - [01_asm_led_minimal](#01_asm_led_minimal)
@@ -262,3 +263,8 @@ This can also be considered as PWM mode.
 
 ## 53_tim_change
 Changing the pulse with with potentiometer.
+
+Move ADC and USART enabling to separate functions.
+
+## Future Examples
+- floating point `@intToPtr(*volatile u32, 0xE000ED88).* = ((3 << 10*2)|(3 << 11*2));`

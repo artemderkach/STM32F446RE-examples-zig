@@ -43,7 +43,8 @@ pub export fn _start() void {
     // for both of them use dummy values
     const writer = std.io.Writer(void, Error, write);
 
-    const bytes = "Hello World!\n\r";
+    
+    const bytes = "Hello World!\n";
     while (true) {
         writer.print(undefined, bytes, .{}) catch unreachable;
 
