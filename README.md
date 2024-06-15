@@ -20,6 +20,7 @@ Each exercise will contain information i discovered during it's implementation a
 - [42_adc_fraction](#42_adc_fraction)
 - [51_tim_blink](#51_tim_blink)
 - [52_tim_output](#52_tim_output)
+- [100_regs_blink](#100_regs_blink)
 
 <br>
 
@@ -82,6 +83,11 @@ is the starting address of the reset handler. After these two words are read by 
 sets up the MSP and the Program Counter (PC) with these values.  
 3. `.ARM.attributes`  
 `.ARM.attributes` section holding specific instruction arm instructions needed to view them in objdump.  
+in case `.ARM.attributes` is removed from binary, disassembly instructions will be shown as invalid ones.  
+4. sections of objdump that can be omited:
+- `.comment`
+- `.symtab`
+- `.strtab`  
 
 ## 02_asm_blink
 blinking onboard LED.  
@@ -136,7 +142,8 @@ Probably startup file require different section name than the main one.
 1. `.c` alternative  
 Ways to access memory in both languages:  
 `(*(volatile unsigned int *) (0x12345678)) |= 0x1;` - `.c` version  
-`@intToPtr(*volatile u32, 0x12345678)).* |= 0x1;` - `.zig` version
+`@intToPtr(*volatile u32, 0x12345678)).* |= 0x1;` - `.zig` version (old)  
+`(@as(*volatile u32, @ptrFromInt(0x12345678))).* |= 0x1;` - `.zig` version (0.13.0)
 
 <br>
 
@@ -155,6 +162,31 @@ Files used:
 1. packed struct  
 `zig 0.10` still have some issues with packed structs, specifically when nesting them together.
 For this reason registers will have flat structure for now.
+
+### Lessons Learned
+1. bit-banding
+Accessing of a single bit of MMIO is called bit-banding.
+Cortex-m4 does support this ([Arm Cortex-M4 Processor About bit-banding](https://developer.arm.com/documentation/100166/0001/Programmers-Model/Bit-banding/About-bit-banding?lang=en)), but when zig (or LLVM) compiles code it does so that bit-banding is not working.  
+So then this it will not work.  
+```zig
+MODER: packed struct {
+    MODER0: u1,
+    MODER1: u1,
+    MODER2: u1,
+    MODER3: u1,
+    ...
+},
+```
+Minimum length of bit is should be `u8`: 
+```zig
+MODER: packed struct {
+    MODER0: u8,
+    MODER1: u8,
+    MODER2: u8,
+    MODER3: u8,
+    ...
+},
+```
 
 ## 22_led_library
 Move every hex literal and bit shift from right side of `=` to `registers.zig`
@@ -265,6 +297,56 @@ This can also be considered as PWM mode.
 Changing the pulse with with potentiometer.
 
 Move ADC and USART enabling to separate functions.
+
+## 100_regs_blink
+For this example, approach with generated mmio file will be taken.
+to generate file we need source file and a tool, as source file `.svd` is used,
+can find one in this repository https://github.com/cmsis-svd/cmsis-svd-data,
+for pareser use `regs` from `microzig` https://github.com/ZigEmbeddedGroup/microzig.  
+generated file also requires `microzig` as dependecie, this can be avoided by adding function
+to generated file:
+```zig
+const mmio = struct {
+    pub fn Mmio(comptime PackedT: type) type {
+        ...
+        ...
+    }
+    ...
+    ...
+};
+
+pub const types = struct {
+    pub const peripherals = struct {
+        ///  Digital camera interface
+        pub const DCMI = extern struct {
+            ///  control register 1
+            CR: mmio.Mmio(packed struct(u32) {
+                ///  Capture enable
+                CAPTURE: u1,
+                ...
+            }
+            ...
+        }
+        ...
+    }
+    ...
+};
+
+```
+
+`0.13.0` version of `mmio` also had bugged `.toggle` and can be fixed by changing for loop,
+where commented lines are old ones.
+```zig
+pub inline fn toggle(addr: *volatile Self, fields: anytype) void {
+    var val = read(addr);
+    inline for (fields) |field| {
+    // inline for (@typeInfo(@TypeOf(fields)).Struct.fields) |field| {
+        @field(val, @tagName(field)) = if (@field(val, @tagName(field)) == 1) 0 else 1;
+        // @field(val, @tagName(field.default_value.?)) = !@field(val, @tagName(field.default_value.?));
+    }
+    write(addr, val);
+}
+```
 
 ## Future Examples
 - floating point `@intToPtr(*volatile u32, 0xE000ED88).* = ((3 << 10*2)|(3 << 11*2));`
