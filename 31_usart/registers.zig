@@ -67,6 +67,6 @@ const GPIOA_BASE:   u32 = 0x40020000;
 const RCC_BASE:     u32 = 0x40023800;
 const USART2_BASE:  u32 = 0x40004400;
 
-pub const GPIOA = @intToPtr(*volatile GPIO_type, GPIOA_BASE);
-pub const RCC = @intToPtr(*volatile RCC_type, RCC_BASE);
-pub const USART2 = @intToPtr(*volatile USART_type, USART2_BASE);
+pub const GPIOA:   *volatile GPIO_type = @ptrFromInt(GPIOA_BASE);
+pub const RCC:     *volatile RCC_type = @ptrFromInt(RCC_BASE);
+pub const USART2:  *volatile USART_type = @ptrFromInt(USART2_BASE);

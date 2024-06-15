@@ -41,7 +41,12 @@ const RCC_type = packed struct {
 };
 
 const GPIO_type = packed struct {
-    MODER:      u32,    // GPIO port mode register,                 Address offset: 0x00
+    MODER: packed struct {
+        MODER0: u8,
+        MODER1: u8,
+        MODER2: u8,
+        MODER3: u8,
+    },
     OTYPER:     u32,    // GPIO port output type register,          Address offset: 0x04
     OSPEEDR:    u32,    // GPIO port output speed register,         Address offset: 0x08
     PUPDR:      u32,    // GPIO port pull-up/pull-down register,    Address offset: 0x0C
@@ -56,5 +61,5 @@ const GPIO_type = packed struct {
 const GPIOA_BASE: u32 = 0x40020000;
 const RCC_BASE:   u32 = 0x40023800;
 
-pub const GPIOA = @intToPtr(*volatile GPIO_type, GPIOA_BASE);
-pub const RCC = @intToPtr(*volatile RCC_type, RCC_BASE);
+pub const GPIOA: *volatile GPIO_type = @ptrFromInt(GPIOA_BASE);
+pub const RCC: *volatile RCC_type = @ptrFromInt(RCC_BASE);
