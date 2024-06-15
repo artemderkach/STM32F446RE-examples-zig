@@ -6,25 +6,25 @@ Each exercise will contain information i discovered during it's implementation a
 - `arm-none-eabi-objdump -D main.elf > dump` OR `llvm-objdump-15 -D main.elf > dump`
 
 # STM32F446RE
-- [01_asm_led_minimal](#01_asm_led_minimal)
-- [02_asm_blink](#02_asm_blink)
-- [03_asm_led_button](#03_asm_led_button)
-- [04_asm_blink_button](#04_asm_blink_button)
-- [11_led_minimal](#11_led_minimal)
-- [21_led_registers](#21_led_registers)
-- [22_led_library](#22_led_library)
-- [23_blink](#23_blink)
-- [31_usart](#31_usart)
-- [32_usart_writer](#32_usart_writer)
-- [41_adc](#41_adc)
-- [42_adc_fraction](#42_adc_fraction)
-- [51_tim_blink](#51_tim_blink)
-- [52_tim_output](#52_tim_output)
+- [001_asm_led_minimal](#001_asm_led_minimal)
+- [002_asm_blink](#002_asm_blink)
+- [003_asm_led_button](#003_asm_led_button)
+- [004_asm_blink_button](#004_asm_blink_button)
+- [011_led_minimal](#011_led_minimal)
+- [021_led_registers](#021_led_registers)
+- [022_led_library](#022_led_library)
+- [023_blink](#023_blink)
+- [031_usart](#031_usart)
+- [032_usart_writer](#032_usart_writer)
+- [041_adc](#041_adc)
+- [042_adc_fraction](#042_adc_fraction)
+- [051_tim_blink](#051_tim_blink)
+- [052_tim_output](#052_tim_output)
 - [100_regs_blink](#100_regs_blink)
 
 <br>
 
-## 01_asm_led_minimal
+## 001_asm_led_minimal
 A good place to start is to implement the minimal possible program.
 It will use assembly, to begin with the simplest language. Plus assembly still will be used for startup files in future.
 At this point i will also try to remove any unused sections, flags etc. They will be added in future examples if needed.
@@ -89,7 +89,7 @@ in case `.ARM.attributes` is removed from binary, disassembly instructions will 
 - `.symtab`
 - `.strtab`  
 
-## 02_asm_blink
+## 002_asm_blink
 blinking onboard LED.  
 Period is defined by delay `0xFFFFF` which is about 1 mil,
 loop is taking few cycles.
@@ -101,19 +101,19 @@ Compare instructions such as `cmp` updates `cpsr` register,
 which is giving branch instructions such as `bne` to check
 a compare results and make a decision.
 
-## 03_asm_led_button
+## 003_asm_led_button
 Turn on LED if onboard button is pushed.
 
 ### Lessons Learned
 1. Button State  
 If button is not pushed, IDR register outputs 1, otherwise 0.
 
-## 04_asm_blink_button
+## 004_asm_blink_button
 LED starts blinking when onboard button is pushed.
 
 <br>
 
-## 11_led_minimal
+## 011_led_minimal
 Now to use zig i'll add `main.zig` file to put there logic for turning on led.  
 Important thing is to add `export` to main function as it will allow to expose it to compiler, same logic as with `.global` in assembly.  
 
@@ -147,7 +147,7 @@ Ways to access memory in both languages:
 
 <br>
 
-## 21_led_registers
+## 021_led_registers
 Adding complexity by presenting Memory Mapped structures. 
 In previous examples i was using pure values when accessing memory regions.
 Default approach is to map memory into structure, this way everything is organized and in one place. 
@@ -188,12 +188,12 @@ MODER: packed struct {
 },
 ```
 
-## 22_led_library
+## 022_led_library
 Move every hex literal and bit shift from right side of `=` to `registers.zig`
 to have cleaner code in main:
 `regs.RCC.AHB1ENR |= 0x1;` --> `regs.RCC.AHB1ENR |= regs.RCC_AHB1ENR_GPIOAEN;`
 
-## 23_blink
+## 023_blink
 In this exercise i'll try to explore the concept of using variables and loops to count down the blink time.
 
 ### Problems during implementation
@@ -223,7 +223,7 @@ while (count > 0) : (count -= 1) {
 
 <br>
 
-## 31_usart
+## 031_usart
 Sending char (u8) through USART.  
 Data is received in terminal via `screen /dev/ttyACM0 115200`, 115200 is baud rate.
 This example is limited to sending only one char `u8`.
@@ -234,7 +234,7 @@ Files used:
 - `registers.zig`
 - `linker.ld` 
 
-## 32_usart_writer
+## 032_usart_writer
 Point of this example is to show how to send any type of data through USART.
 To achieve this goal, `writer` from standard library can be used (`std.io.Writer`).
 It will allow to use `print` method to convert any types to string and send it through.
@@ -252,7 +252,7 @@ It is done via `print` function.
 
 <br>
 
-## 41_adc
+## 041_adc
 Convert input analog signal to digital, result is sent to USART. 
 
 Files used:
@@ -263,7 +263,7 @@ Files used:
 
 <br>
 
-## 42_adc_fraction
+## 042_adc_fraction
 Convert input analog signal to digital, result is sent to USART.
 The result from register is previously adjusted to sent range [0..1000] instead of [0..4095] 
 
@@ -275,7 +275,7 @@ Files used:
 
 <br>
 
-## 51_tim_blink
+## 051_tim_blink
 Using general purpose timers, instead of loop, to blink onboard LED.
 Timer is set by prescaler and auto reload registers.  
 - `prescaler` - value which is used to divide clock speed (16MHz/PSC)
@@ -288,7 +288,7 @@ Files used:
 - `registers.zig`
 - `linker.ld`
 
-## 52_tim_output
+## 052_tim_output
 Configure TIM to blink LED not by software, but automatically by outputting TIM signal straight to PIN5.
 PA5 need to be configured as an alternate function for TIM2.
 This can also be considered as PWM mode.
