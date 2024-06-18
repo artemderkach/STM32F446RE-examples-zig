@@ -261,6 +261,11 @@ Files used:
 - `registers.zig`
 - `linker.ld`
 
+### Problems during implementation
+1. building this program requires `compiler-rt` libraries.  
+Command will look like this after removing `-fno-compiler-rt`:  
+`zig build-exe main.zig startup.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -Tlinker.ld --name main.elf -fstrip`
+
 <br>
 
 ## 042_adc_fraction
