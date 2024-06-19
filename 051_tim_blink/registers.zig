@@ -94,14 +94,12 @@ const GPIOB_BASE:   u32 = 0x40020400;
 const RCC_BASE:     u32 = 0x40023800;
 const USART2_BASE:  u32 = 0x40004400;
 
-
-pub const TIM2      = @intToPtr(*volatile TIM_type,     TIM2_BASE);
-pub const TIM4      = @intToPtr(*volatile TIM_type,     TIM4_BASE);
-pub const GPIOA     = @intToPtr(*volatile GPIO_type,    GPIOA_BASE);
-pub const GPIOB     = @intToPtr(*volatile GPIO_type,    GPIOB_BASE);
-pub const RCC       = @intToPtr(*volatile RCC_type,     RCC_BASE);
-pub const USART2    = @intToPtr(*volatile USART_type,   USART2_BASE);
-
+pub const TIM2: *volatile TIM_type      = @ptrFromInt(TIM2_BASE);
+pub const TIM4: *volatile TIM_type      = @ptrFromInt(TIM4_BASE);
+pub const GPIOA: *volatile GPIO_type    = @ptrFromInt(GPIOA_BASE);
+pub const GPIOB: *volatile GPIO_type    = @ptrFromInt(GPIOB_BASE);
+pub const RCC: *volatile RCC_type       = @ptrFromInt(RCC_BASE);
+pub const USART2: *volatile USART_type  = @ptrFromInt(USART2_BASE);
 
 pub const RCC_AHB1ENR_GPIOA     = @as(u32, 1 << 0);
 pub const RCC_AHB1ENR_GPIOB     = @as(u32, 1 << 1);
