@@ -224,6 +224,9 @@ while (count > 0) : (count -= 1) {
 <br>
 
 ## 031_usart
+USART/UART (Universal Synchronous/Asynchronous Receiver-Transmitter)  
+there are 6 available in STM32F446RE (USART1, USART2, USART3, USART6, UART4, UART5)  
+
 Sending char (u8) through USART.  
 Data is received in terminal via `screen /dev/ttyACM0 115200`, 115200 is baud rate.
 This example is limited to sending only one char `u8`.
@@ -352,6 +355,19 @@ pub inline fn toggle(addr: *volatile Self, fields: anytype) void {
     write(addr, val);
 }
 ```
+
+## 110_proto_usart
+send protobuf data over usart using `microzig` `regs`  
+writer requires update for sending data  
+```zig
+while(periph.USART2.SR.read().TXE == 0) {}
+periph.USART2.DR.modify(.{ .DR = byte });
+// while((regs.USART2.SR & regs.USART_SR_TXE) != regs.USART_SR_TXE) {}
+// regs.USART2.DR = byte;
+```
+### lessons learned
+1. `read()` method of `MMIO` returns full struct with actual bits.  
+2. The equivalent of `regs.USART2.BRR = value` is `periph.USART2.BRR.write_raw(value)`  
 
 ## Future Examples
 - floating point `@intToPtr(*volatile u32, 0xE000ED88).* = ((3 << 10*2)|(3 << 11*2));`
