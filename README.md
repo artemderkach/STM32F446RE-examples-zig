@@ -24,6 +24,7 @@ Each exercise will contain information i discovered during it's implementation a
 - [100_regs_blink](#100_regs_blink)
 - [101_regs_usart](#101_regs_usart)
 - [200_build_blinky](#200_build_blinky)
+- [201_build_openocd](#201_build_openocd)
 <br>
 
 ## 001_asm_led_minimal
@@ -482,6 +483,18 @@ pub fn build(b: *std.Build) void {
 
 <br>
 
+## 201_build_openocd
+Added step in build system to allow user to call `openocd` command: `openocd -f board/st_nucleo_f4.cfg -c "program zig-out/bin/main.elf verify reset exit"`
+- `zig build`
+- `zig build opeocd`
+
+```zig
+const run_cmd = b.addSystemCommand(&[_][]const u8{"openocd", "-f", "board/st_nucleo_f4.cfg", "-c", "program zig-out/bin/main.elf verify reset exit"});
+b.step("openocd", "runs openocd to flash file into the board").dependOn(&run_cmd.step);
+```
+This does require to define every argument of `openocd` one by one
+
+<br>
 
 ## Future Examples
 - floating point `@intToPtr(*volatile u32, 0xE000ED88).* = ((3 << 10*2)|(3 << 11*2));`
