@@ -25,6 +25,7 @@ Each exercise will contain information i discovered during it's implementation a
 - [101_regs_usart](#101_regs_usart)
 - [200_build_blinky](#200_build_blinky)
 - [201_build_openocd](#201_build_openocd)
+- [202_build_lib](#201_build_lib)
 <br>
 
 ## 001_asm_led_minimal
