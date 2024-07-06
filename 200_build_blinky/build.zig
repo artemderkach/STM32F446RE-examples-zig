@@ -24,6 +24,5 @@ pub fn build(b: *std.Build) void {
     exe.setLinkerScript(b.path("linker.ld"));
     exe.bundle_compiler_rt = false;
 
-    b.install_prefix = "";
     b.installArtifact(exe);
 }
