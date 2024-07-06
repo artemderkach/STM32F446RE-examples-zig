@@ -496,6 +496,24 @@ This does require to define every argument of `openocd` one by one
 
 <br>
 
+## 202_build_lib
+Instread of using `STM32F446.zig` file inside the directory of example, use one from parent directory.  
+This will require to add module in build system.  
+```zig
+const mmio_mod = b.addModule("mmio", .{
+    .root_source_file = b.path("../STM32F446.zig"),
+});
+exe.root_module.addImport("mmio", mmio_mod);
+```
+Structure:  
+```zig
+/202_build_lib
+  - main.zig
+  - build.zig
+STM32F446.zig
+```
+
+<br>
 ## Future Examples
 - floating point `@intToPtr(*volatile u32, 0xE000ED88).* = ((3 << 10*2)|(3 << 11*2));`
 
