@@ -11,6 +11,7 @@ Each exercise will contain information i discovered during it's implementation a
 - [003_asm_led_button](#003_asm_led_button)
 - [004_asm_blink_button](#004_asm_blink_button)
 - [011_led_minimal](#011_led_minimal)
+- [012_blinky_minimal](#011_blinky_minimal)
 - [021_led_registers](#021_led_registers)
 - [022_led_library](#022_led_library)
 - [023_blink](#023_blink)
@@ -21,7 +22,8 @@ Each exercise will contain information i discovered during it's implementation a
 - [051_tim_blink](#051_tim_blink)
 - [052_tim_output](#052_tim_output)
 - [100_regs_blink](#100_regs_blink)
-
+- [101_regs_usart](#101_regs_usart)
+- [200_build_blinky](#200_build_blinky)
 <br>
 
 ## 001_asm_led_minimal
@@ -126,7 +128,6 @@ commands to build and flash program:
 - `zig build-exe main.zig startup.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -Tlinker.ld --name main.elf --verbose-link --verbose-cc --strip -fno-compiler-rt`  
 - `openocd -f board/st_nucleo_f4.cfg -c "program main.elf verify reset exit"`  
 
-
 ### Problems during implementation
 1. `.ARM.exidx` missing region  
 When compiling, error from linker with message `no memory region specified for section '.ARM.exidx'` occurs.
@@ -144,6 +145,12 @@ Ways to access memory in both languages:
 `(*(volatile unsigned int *) (0x12345678)) |= 0x1;` - `.c` version  
 `@intToPtr(*volatile u32, 0x12345678)).* |= 0x1;` - `.zig` version (old)  
 `(@as(*volatile u32, @ptrFromInt(0x12345678))).* |= 0x1;` - `.zig` version (0.13.0)
+
+<br>
+
+## 012_blinky_minimal
+Same as [012_blinky_minimal](#011_blinky_minimal) but with blinky led
+
 
 <br>
 
@@ -296,15 +303,21 @@ Files used:
 - `registers.zig`
 - `linker.ld`
 
+<br>
+
 ## 052_tim_output
 Configure TIM to blink LED not by software, but automatically by outputting TIM signal straight to PIN5.
 PA5 need to be configured as an alternate function for TIM2.
 This can also be considered as PWM mode.
 
+<br>
+
 ## 53_tim_change
 Changing the pulse with with potentiometer.
 
 Move ADC and USART enabling to separate functions.
+
+<br>
 
 ## 100_regs_blink
 For this example, approach with generated mmio file will be taken.
@@ -356,9 +369,10 @@ pub inline fn toggle(addr: *volatile Self, fields: anytype) void {
 }
 ```
 
-## 110_proto_usart
-send protobuf data over usart using `microzig` `regs`  
-writer requires update for sending data  
+<br>
+
+## 101_regs_usart
+same as [032_usart_writer](#032_usart_writer) but with using generated `regs`  
 ```zig
 while(periph.USART2.SR.read().TXE == 0) {}
 periph.USART2.DR.modify(.{ .DR = byte });
@@ -366,8 +380,112 @@ periph.USART2.DR.modify(.{ .DR = byte });
 // regs.USART2.DR = byte;
 ```
 ### lessons learned
-1. `read()` method of `MMIO` returns full struct with actual bits.  
+1. `read()` method of `MMIO` returns full struct with actual bits:
+```zig
+pub inline fn read(addr: *volatile Self) PackedT {
+    return @bitCast(addr.raw);
+}
+...
+AHB2RSTR: Mmio(packed struct(u32) {
+    DCMIRST: u1,
+    reserved7: u6,
+    OTGFSRST: u1,
+    padding: u24,
+}),
+
+```
 2. The equivalent of `regs.USART2.BRR = value` is `periph.USART2.BRR.write_raw(value)`  
+
+<br>
+
+## 200_build_blinky
+introduce build zig's build system into our flow  
+start with simple blinky program  
+build for command:  
+`zig build-exe main.zig startup.s -target thumb-freestanding-none -mcpu cortex_m4 -O ReleaseSafe -Tlinker.ld --name main.elf -fstrip -fno-compiler-rt`   
+
+- `build-exe main.zig`
+```zig
+b.addExecutable(.{
+    .root_source_file = b.path("main.zig"),
+}
+```
+- `--name main.elf`
+```zig
+b.addExecutable(.{
+    .name = "main.elf",
+});
+```
+- `-target thumb-freestanding-none -mcpu cortex_m4`
+```zig
+const target = b.resolveTargetQuery(.{
+    .cpu_arch = .thumb,
+    .os_tag = .freestanding,
+    .abi = .eabi,
+    .cpu_model = std.zig.CrossTarget.CpuModel{ 
+        .explicit = &std.Target.arm.cpu.cortex_m4 
+    },
+});
+```
+- `-O ReleaseSafe`
+```zig
+const exe = b.addExecutable(.{
+    .optimize = .ReleaseSafe
+});
+```
+- `startup.s`
+```zig
+exe.addAssemblyFile(b.path("startup.s"));
+```
+- `-Tlinker.ld`
+```zig
+exe.setLinkerScript(b.path("linker.ld"));
+```
+- `-fstrip`
+```zig
+b.addExecutable(.{
+    .strip = true,
+});
+```
+- `-fno-compiler-rt`
+```zig
+exe.bundle_compiler_rt = false;
+```
+And the final result will be:
+```zig
+pub fn build(b: *std.Build) void {
+    const target = b.resolveTargetQuery(.{
+        .cpu_arch = .thumb,
+        .os_tag = .freestanding,
+        .abi = .eabi,
+        .cpu_model = std.zig.CrossTarget.CpuModel{
+            .explicit = &std.Target.arm.cpu.cortex_m4,
+        },
+    });
+
+    const exe = b.addExecutable(.{
+        .name = "main.elf",
+        .root_source_file = b.path("main.zig"),
+        .target = target,
+        .optimize = .ReleaseSafe,
+        .strip = true,
+    });
+
+    exe.addAssemblyFile(b.path("startup.s"));
+    exe.setLinkerScript(b.path("linker.ld"));
+    exe.bundle_compiler_rt = false;
+
+    b.install_prefix = "";
+    b.installArtifact(exe);
+}
+```
+
+<br>
+
 
 ## Future Examples
 - floating point `@intToPtr(*volatile u32, 0xE000ED88).* = ((3 << 10*2)|(3 << 11*2));`
+
+## 110_proto_usart
+send protobuf data over usart using `microzig` `regs`  
+writer requires update for sending data  
