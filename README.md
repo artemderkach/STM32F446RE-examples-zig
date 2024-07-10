@@ -3,7 +3,10 @@ I choose the bottom-up approach, this way exercises will be incrementally more c
 Each exercise will contain information i discovered during it's implementation and problems i faced.
 
 ## Tips
-- `arm-none-eabi-objdump -D main.elf > dump` OR `llvm-objdump-15 -D main.elf > dump`
+- `arm-none-eabi-objdump -D main.elf > objdump` OR `llvm-objdump-15 -D main.elf > objdump`
+- `openocd -f board/st_nucleo_f4.cfg` to connect to board
+- `lldb-15 zig-out/bin/main.elf` to start lldb with selected executable
+- `(lldb) gdb-remote localhost:3333` to connect to remote board
 
 # STM32F446RE
 - [001_asm_led_minimal](#001_asm_led_minimal)
@@ -25,7 +28,7 @@ Each exercise will contain information i discovered during it's implementation a
 - [101_regs_usart](#101_regs_usart)
 - [200_build_blinky](#200_build_blinky)
 - [201_build_openocd](#201_build_openocd)
-- [202_build_lib](#201_build_lib)
+- [202_build_lib](#202_build_lib)
 <br>
 
 ## 001_asm_led_minimal
@@ -165,7 +168,11 @@ Files used:
 - `main.s` - contains vector table 
 - `main.zig` code to blink LED
 - `registers.zig` - file with memory mapped structures
-- `linker.ld` - linker script file 
+- `linker.ld` - linker script file  
+
+Also added `_estack = ORIGIN(SRAM) + LENGTH(SRAM);` to linker script. `_estack` is required symbol
+and in case if it's unavailable we'll get an error `error: ld.lld: undefined symbol: _estack`.  
+`_estack` is a stack that is pointing to end of SRAM memory.  
 
 ### Problems during implementation
 1. packed struct  
@@ -232,6 +239,37 @@ while (count > 0) : (count -= 1) {
 
 <br>
 
+## 024_heap
+In this example we'll define heap section in linker script and use this values in main file.  
+Linker script will have 2 values:
+```ld
+_heap_start = ORIGIN(SRAM);
+_heap_end = _heap_start + 0x8000; /* 32K */
+```
+By setting `_heap_start` to `ORIGIN(SRAM)` it will be placed at the bottom of `SRAM` memory.
+`_heap_end` shows that heap overall will be 32K bits length.  
+
+This variables will be exposed at runtime:
+```zig
+extern var _heap_start: u32;
+extern var _heap_end: u32;
+```
+
+And the trick to make this 2 variable as array(slice) of bytes:
+```zig
+const base: [*]u8 = @ptrFromInt(_heap_start);
+const heap = base[0.._heap_start - _heap_end];
+```
+Where `[*]u8` is many-item pointer to unknown number of items.
+
+### Lessons Learned
+1. Heap Allocation Strategies
+Apperently heap allocaton is complex topic which does not have 1 clear solution,
+it's either simple but very specific or broad (general, that can fit different problems) but
+quite complex at it's implementaiton and subsequently slower than simple sulution.  
+
+<br>
+
 ## 031_usart
 USART/UART (Universal Synchronous/Asynchronous Receiver-Transmitter)  
 there are 6 available in STM32F446RE (USART1, USART2, USART3, USART6, UART4, UART5)  
@@ -245,6 +283,8 @@ Files used:
 - `main.zig`
 - `registers.zig`
 - `linker.ld` 
+
+<br>
 
 ## 032_usart_writer
 Point of this example is to show how to send any type of data through USART.
@@ -515,6 +555,17 @@ STM32F446.zig
 ```
 
 <br>
+
+## 210_build_protobuf
+Sending protobuf structure over USART  
+For this example will be added `build.zig.zon` file for external dependencies.  
+https://github.com/Arwalk/zig-protobuf is used for generating and serializing.  
+
+### Problems during implementation
+1. `error: ld.lld: undefined symbol: __aeabi_memset` when buildind executable.  
+Caused by `exe.bundle_compiler_rt = false;` in build file, should be removed to solve problem.
+<br>
+
 ## Future Examples
 - floating point `@intToPtr(*volatile u32, 0xE000ED88).* = ((3 << 10*2)|(3 << 11*2));`
 
