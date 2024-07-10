@@ -29,6 +29,7 @@ Each exercise will contain information i discovered during it's implementation a
 - [200_build_blinky](#200_build_blinky)
 - [201_build_openocd](#201_build_openocd)
 - [202_build_lib](#202_build_lib)
+- [210_build_protobuf](#210_build_protobuf)
 <br>
 
 ## 001_asm_led_minimal
