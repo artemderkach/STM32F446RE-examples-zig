@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package simple;
+
+message SearchRequest {
+  int32 page_number = 1;
+}

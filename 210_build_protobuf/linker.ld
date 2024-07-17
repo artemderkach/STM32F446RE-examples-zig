@@ -5,19 +5,30 @@ MEMORY {
 
 SECTIONS {
 	/* The startup code goes first into FLASH */
-	.isr_vector : {        
+	.isr_vector : {    
+		. = ALIGN(4);  
 		KEEP(*(.isr_vector))
+		. = ALIGN(4);
 	} > FLASH
 
 	.text : {
-	    *(.text)
+		*(.text	.text*)
+		*(.rodata .rodata*)
 	} > FLASH
+
+	.bss : {
+		*(.bss)
+		*(.bss*)
+
+		. = ALIGN(4);
+   		PROVIDE(_heap_start = .);
+		PROVIDE(_heap_size = 0x8000);
+	} > SRAM
 }
 
 _estack = ORIGIN(SRAM) + LENGTH(SRAM);
 
-_heap_start = ORIGIN(SRAM);
-_heap_end = _heap_start + 0x8000;
+
 
 /* This sections are not required for current program
    removed for cleaner output of 'objdump' */

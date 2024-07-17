@@ -1,8 +1,12 @@
 The purpose of this exercise is to explore both the world of embedded development and zig programming language.
-I choose the bottom-up approach, this way exercises will be incrementally more complicated.
+I choose the bottom-up approach, this way exercises will be incrementally more complicated.  
 Each exercise will contain information i discovered during it's implementation and problems i faced.
 
-## Tips
+## Useful Links
+- https://github.com/haydenridd/stm32-baremetal-zig - example project
+- https://blog.thea.codes/the-most-thoroughly-commented-linker-script/ - about linker script
+
+## DEBUG
 - `arm-none-eabi-objdump -D main.elf > objdump` OR `llvm-objdump-15 -D main.elf > objdump`
 - `openocd -f board/st_nucleo_f4.cfg` to connect to board
 - `lldb-15 zig-out/bin/main.elf` to start lldb with selected executable
@@ -239,22 +243,6 @@ while (count > 0) : (count -= 1) {
 ```
 
 <br>
-
-## 024_heap
-In this example we'll define heap section in linker script and use this values in main file.  
-Linker script will have 2 values:
-```ld
-_heap_start = ORIGIN(SRAM);
-_heap_end = _heap_start + 0x8000; /* 32K */
-```
-By setting `_heap_start` to `ORIGIN(SRAM)` it will be placed at the bottom of `SRAM` memory.
-`_heap_end` shows that heap overall will be 32K bits length.  
-
-This variables will be exposed at runtime:
-```zig
-extern var _heap_start: u32;
-extern var _heap_end: u32;
-```
 
 And the trick to make this 2 variable as array(slice) of bytes:
 ```zig
@@ -559,12 +547,115 @@ STM32F446.zig
 
 ## 210_build_protobuf
 Sending protobuf structure over USART  
+
+Project structure
+```
+- 210_build_protobuf
+  - build.zig
+  - build.zig.zon       // external dependencies
+  - linker.ld
+  - main.zig
+  - simple.pb.zig       // generated protobuf schema
+- lib
+  - cobs.zig            // algorithm for encoding data
+- protobuf
+  - simple
+    - simple.proto      // protobuf schema
+```
+
 For this example will be added `build.zig.zon` file for external dependencies.  
-https://github.com/Arwalk/zig-protobuf is used for generating and serializing.  
+Protobuf is good protocol for communication between embedded devices, as it's binary nature
+save computation on sending less data.  
+The downside of using protobuf is that it requires to use shared schema.
+Also protobuf does not have any support to determine start or end of messages,
+so when sending it over USART we do require some sort of abstraction overhead before sending.
+To deal with this problem we can use `COBS (Consistent Overhead Byte Stuffing)`
+and it will be implemented as library `libs/cobs` so it could be reused in other examples.  
+https://github.com/Arwalk/zig-protobuf is used for generating and serializing.
+To generate protobuf schema `simple.pb.zig` we need to add script into `build.zig`:  
+```zig
+// make 'protobuf' dependency as a module
+const protobuf_dep = b.dependency("protobuf", .{
+    .target = target,
+    .optimize = optimize,
+});
+exe.root_module.addImport("protobuf", protobuf_dep.module("protobuf"));
+
+// add protobuf generation commmand
+const gen_proto = b.step("gen-proto", "generates zig files from protocol buffer definitions");
+const protoc_step = protobuf.RunProtocStep.create(b, protobuf_dep.builder, b.standardTargetOptions(.{}), .{
+    // out directory for the generated zig files
+    .destination_directory = b.path("."),
+    .source_files = &.{
+        "../protobuf/simple/sibmple.proto",
+    },
+    .include_directories = &.{},
+});
+gen_proto.dependOn(&protoc_step.step);
+```
+To add `libs/cobs.zig`:
+```zig
+// add 'cobs' as module
+const cobs_mod = b.addModule("cobs", .{
+    .root_source_file = b.path("../libs/cobs.zig"),
+});
+exe.root_module.addImport("cobs", cobs_mod);
+```
+```zig
+var fba = std.heap.FixedBufferAllocator.init(heap);
+const allocator = fba.allocator();
+```
+is a way to initialize allocator. FixedBufferAllocator is good fit for simple tasks as it itself
+is simple and have no overhead on allocating logic.
+
+To retrieve the data on the other end of USART, 
+
+### Lessons Learned
+1. exporting symbols form linker script
+It is possible to pass variables from linker script `.ld` to our program `.zig`.  
+Also need to keep in mind that exported symbol form linker script holds an address, not a value. 
+```ld
+_heap_start = ORIGIN(SRAM);
+_heap_end = _heap_start + 0x8000;
+```
+
+```zig
+extern var _heap_start: anyopaque;
+extern var _heap_end: anyopaque;
+
+pub export fn _start() void {
+    const heap_start = @intFromPtr(&_heap_start);
+    const heap_size = @intFromPtr(&_heap_end);
+```
+
+Also you can do it in `SECTIONS` region.
+```ld
+.bss : {
+    *(.bss)
+    *(.bss*)
+
+    . = ALIGN(4);
+    PROVIDE(_heap_start = .);
+    PROVIDE(_heap_size = 0x8000);
+} > SRAM
+```
 
 ### Problems during implementation
 1. `error: ld.lld: undefined symbol: __aeabi_memset` when buildind executable.  
 Caused by `exe.bundle_compiler_rt = false;` in build file, should be removed to solve problem.
+2. When defining `_heap_start` and `_heap_end` i put it into `SECTIONS`.
+```ld
+.bss : {
+    *(.bss)
+    *(.bss*)
+} > SRAM
+
+. = ALIGN(4);
+PROVIDE(_heap_start = .);
+PROVIDE(_heap_size = 0x8000);
+```
+The result is that heap memory was defined at `FLASH` and couldn't be changed, as `FLASH` memory is `rx` (read, execute) only.
+
 <br>
 
 ## Future Examples
