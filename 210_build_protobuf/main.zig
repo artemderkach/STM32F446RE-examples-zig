@@ -18,7 +18,7 @@ pub export fn _start() void {
     const heap_size = @intFromPtr(&_heap_size);
 
     const base: [*]u8 = @ptrFromInt(heap_start);
-    const heap = base[0..heap_size];  
+    const heap = base[0..heap_size];
 
     var fba = std.heap.FixedBufferAllocator.init(heap);
     const allocator = fba.allocator();
@@ -46,8 +46,8 @@ pub export fn _start() void {
     // Enable UART module
     periph.USART2.CR1.modify(.{ .UE = 1 });
 
-    const req = schema.SearchRequest{
-        .page_number = 5,
+    const req = schema.Request{
+        .number = 5,
     };
 
     const bytes = protobuf.pb_encode(req, allocator) catch unreachable;

@@ -1,0 +1,17 @@
+.{
+    .name = "uart",
+    .version = "0.0.1",
+    .dependencies = .{
+        .serial = .{
+            .url = "https://github.com/ZigEmbeddedGroup/serial/archive/refs/heads/master.tar.gz",
+            .hash = "12206bcc961368c1d742c955782843a9b5f64aede138966c493af7a575b92b2234de",
+        },
+        .protobuf = .{
+            .url = "https://github.com/Arwalk/zig-protobuf/archive/7c49ed6.tar.gz",
+            .hash = "122063ee7ff32a3c1aefd91a46a9fc23df0571949c3a02e2f44d39afbad0b53018a3",
+        },
+    },
+    .paths = .{
+        "",
+    },
+}

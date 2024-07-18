@@ -2,6 +2,6 @@ syntax = "proto3";
 
 package simple;
 
-message SearchRequest {
-  int32 page_number = 1;
+message Request {
+  int32 number = 1;
 }
