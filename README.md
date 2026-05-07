@@ -5,6 +5,7 @@ Each exercise will contain information i discovered during it's implementation a
 ## Useful Links
 - https://github.com/haydenridd/stm32-baremetal-zig - example project
 - https://blog.thea.codes/the-most-thoroughly-commented-linker-script/ - about linker script
+- https://github.com/modm-io/cmsis-svd-stm32 - svd files for stm32
 
 ## DEBUG
 - `arm-none-eabi-objdump -D main.elf > objdump` OR `llvm-objdump-15 -D main.elf > objdump`
