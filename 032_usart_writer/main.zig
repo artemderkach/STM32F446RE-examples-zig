@@ -39,18 +39,13 @@ pub export fn _start() void {
     // Enable UART module
     regs.USART2.CR1 |= regs.USART_CR1_UE;
 
-    // except writer function, method require context and error
-    // for both of them use dummy values
-    const writer = std.io.Writer(void, Error, write);
-
-    
     const bytes = "Hello World!\n";
     while (true) {
-        writer.print(undefined, bytes, .{}) catch unreachable;
+        _ = write({}, bytes) catch unreachable;
 
         var count: u32 = 1_000_000;
         while (count > 0) : (count -= 1) {
-            @import("std").mem.doNotOptimizeAway(count);
+            std.mem.doNotOptimizeAway(count);
         }
     }
 }
