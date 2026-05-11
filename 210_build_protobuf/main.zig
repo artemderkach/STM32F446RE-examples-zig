@@ -9,7 +9,6 @@ const cobs = @import("cobs");
 extern var _heap_start: anyopaque;
 extern var _heap_size: anyopaque;
 
-const Error = error{};
 const freq: u32 = 16000000;
 const baud: u32 = 115200;
 
@@ -50,18 +49,21 @@ pub export fn _start() void {
         .number = 5,
     };
 
-    const bytes = protobuf.pb_encode(req, allocator) catch unreachable;
-    var b: [256]u8 = undefined;
-    const res = cobs.encode_len(bytes, &b) catch unreachable;
+    var encode_buf: [256]u8 = undefined;
+    var fbs = std.io.fixedBufferStream(&encode_buf);
+    const writer = fbs.writer();
+    req.encode(&writer, allocator) catch unreachable;
+    const bytes = fbs.getWritten();
+
+    var cobs_buf: [256]u8 = undefined;
+    const res = cobs.encode_len(bytes, &cobs_buf) catch unreachable;
 
     while (true) {
         for (res) |byte| {
-            // wait when transmissino is ready
             while (periph.USART2.SR.read().TXE == 0) {}
             periph.USART2.DR.modify(.{ .DR = byte });
         }
 
-        // reset allocated memory
         fba.reset();
 
         var count: u32 = 1_000_000;
