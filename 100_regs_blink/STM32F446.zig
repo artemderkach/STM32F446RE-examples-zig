@@ -26,7 +26,10 @@ pub fn Mmio(comptime PackedT: type) type {
     const IntT = std.meta.Int(.unsigned, size);
 
     if (@sizeOf(PackedT) != (size / 8))
-        @compileError(std.fmt.comptimePrint("IntT and PackedT must have the same size!, they are {} and {} bytes respectively", .{ size / 8, @sizeOf(PackedT) }));
+        @compileError(std.fmt.comptimePrint(
+            "IntT and PackedT must have the same size!, they are {} and {} bytes respectively",
+            .{ size / 8, @sizeOf(PackedT) },
+        ));
 
     return extern struct {
         const Self = @This();
@@ -52,7 +55,8 @@ pub fn Mmio(comptime PackedT: type) type {
 
         pub inline fn modify(addr: *volatile Self, fields: anytype) void {
             var val = read(addr);
-            inline for (@typeInfo(@TypeOf(fields)).Struct.fields) |field| {
+            // .Struct -> .struct (lowercase tag names since Zig 0.14)
+            inline for (@typeInfo(@TypeOf(fields)).@"struct".fields) |field| {
                 @field(val, field.name) = @field(fields, field.name);
             }
             write(addr, val);
@@ -61,8 +65,6 @@ pub fn Mmio(comptime PackedT: type) type {
         pub inline fn toggle(addr: *volatile Self, fields: anytype) void {
             var val = read(addr);
             inline for (fields) |field| {
-            // inline for (@typeInfo(@TypeOf(fields)).Struct.fields) |field| {
-                // @field(val, @tagName(field.default_value.?)) = !@field(val, @tagName(field.default_value.?));
                 @field(val, @tagName(field)) = if (@field(val, @tagName(field)) == 1) 0 else 1;
             }
             write(addr, val);
