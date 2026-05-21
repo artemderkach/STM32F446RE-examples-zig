@@ -62,12 +62,10 @@ blink:
 	and r5, 0xFFFFFFDF			// write 0 to pin 5
 	str r5, [r6]
 
-	bl delay
-
 	b loop
 
 delay:
-	ldr r1, =0xFFFFF			//  ~ 1 mil
+	ldr r1, =0xFFFFFF			//  ~ 1 mil
 L:
 	subs r1, r1, #1				// subtract 1 from r1
 	cmp r1, #0					// check if r1 is zero
