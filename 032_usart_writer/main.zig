@@ -39,11 +39,11 @@ pub export fn _start() void {
     // Enable UART module
     regs.USART2.CR1 |= regs.USART_CR1_UE;
 
-    const bytes = "Hello World!\n";
+    const bytes = "Hello World!\r\n";
     while (true) {
         _ = write({}, bytes) catch unreachable;
 
-        var count: u32 = 1_000_000;
+        var count: u32 = 2_000_000;
         while (count > 0) : (count -= 1) {
             std.mem.doNotOptimizeAway(count);
         }
