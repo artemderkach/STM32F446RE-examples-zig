@@ -1,0 +1,10 @@
+.{
+    .name = .microzig_mmio,
+    .version = "0.1.0",
+    .paths = .{ 
+        "microzig.zig",
+        "mmio.zig",
+        "interrupts.zig",
+    },
+    .fingerprint = 0x277d79ce4858928b,
+}

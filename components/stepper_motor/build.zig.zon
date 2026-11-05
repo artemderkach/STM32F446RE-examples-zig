@@ -1,0 +1,15 @@
+.{
+    .name = ._201_build_opeocd,
+    .version = "0.17.0",
+    .dependencies = .{
+        // .microzig = .{
+        //     .url = "git+https://github.com/ZigEmbeddedGroup/microzig.git#ff90c4a23629a731e8861cb948e1afa06578c69a",
+        //     .hash = "microzig-0.17.29-D20YSbS0AADedPdChVviIyy1yCTMEjIkv9J23IyooPXr",
+        // },
+        .microzig = .{
+            .path = "../../microzig_mmio",
+        },
+    },
+    .paths = .{""},
+    .fingerprint = 0xf1cf954c0df409bf,
+}
